@@ -1,9 +1,3 @@
-/**
- * jQuery File: 	welcome.js
- * Type: 			execute
- * Author:        	Chris Humboldt
- * Last Edited:   	25 June 2014
- */
 
 
 $(document).ready(function()
