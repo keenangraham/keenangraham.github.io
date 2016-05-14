@@ -53,7 +53,7 @@ var diagonal = d3.svg.diagonal()
     .projection(function(d) { return [d.y, d.x]; });
 
 
-d3.json("data.json", function(error, data) {
+d3.json("https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/combination_tree/data.json", function(error, data) {
     if (error) throw error;
     var nodes = tree.nodes(data);
     var links = tree.links(nodes);
