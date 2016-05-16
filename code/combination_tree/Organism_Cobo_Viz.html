@@ -2,6 +2,7 @@
 <meta charset="utf-8">
 <style>
 
+
 .link {
   fill: none;
   stroke: #e0e0e0;
@@ -19,26 +20,149 @@
 }
 
 .node text {
-  font: 10px sans-serif;
+  font: 11px sans-serif;
 }
 
-
-
 </style>
+
+<link href="https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/PMT_Demo/CSS/bs/css/bootstrap.min.css" rel="stylesheet">
+
 <body>
-<script src="d3.v3.js"></script>
+<script type="text/javascript" src="https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/PMT_Demo/JS/jquery-2.2.3.js"></script>
+<script type="text/javascript" src="https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/PMT_Demo/CSS/bs/js/bootstrap.min.js"></script>
+<script src="https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/PMT_Demo/JS/d3.v3.js"></script>
+
+<div class="container">
+
+<div class="page-header">
+<h1>Every Parasitology Organism Combination <br><small>Observed in 2014-2015</small></h1>
+</div>
+<h4><small>BHOM = <i>Blastocystis hominis</i>, DFRG = <i>Dientamoeba fragilis</i>, NANA = <i>Endolimax nana</i>, COLI = <i>Entamoeba coli</i>, HART = <i>Entamoeba hartmanni</i>, CHIL = <i>Chilomastix mesnili</i>, GIAR = <i>Giardia lamblia</i>, HIS2 = E<i>ntamoeba histolytica/dispar</i>, IODA = <i>Iodamoeba butschlii</i>, TRIC = <i>Trichomonas hominis</i>, EIAH = <i>Entamoeba histolytica</i> Enzyme Immunoassay (EIA), EIAG = <i>Giardia lamblia</i> (EIA), EIAC = <i>Cryptosporidium hominis</i> (EIA).</small></h4>
+<br>
+
+<label class="radio-inline"><input checked type="radio" name="optradio" value="byOrganism">By Organism</label>
+<label class="radio-inline"><input type="radio" name="optradio" value="byCombo">By Organism and Combination Number</label>
+</div>
+
+
+
 <script>
+
+var duration = 2000;
+
+d3.selectAll("input").on("change", change);
+
+function change() {
+
+    if (this.value === "byOrganism"){
+        update(1);
+    }else{
+        update(2);
+    }
+}
+
 function addCommas(intNum) {
-	return (intNum + '').replace(/(\d)(?=(\d{3})+$)/g, '$1,');
+    return (intNum + '').replace(/(\d)(?=(\d{3})+$)/g, '$1,');
 }
 
 function addBold(OrgStr) {
-	return 
+    return 
+}
+
+function update(x) { 
+
+var dataPath;
+
+if (x === 1){
+    dataPath = "https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/combination_tree/data.json";
+}else{
+    dataPath = "https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/combination_tree/databycombo.json";
+}
+
+
+d3.json(dataPath, function(error, data) {
+    if (error) throw error;
+
+    var nodes = tree.nodes(data);
+
+    var links = tree.links(nodes);
+
+    var node = svg.selectAll("g.node")
+        .data(nodes);
+
+    var nodeEnter = node.enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+    nodeEnter.append("circle")
+        .attr("r", 5); 
+
+    nodeEnter.append("text")
+      .attr("dx", function(d) { return d.children ? -8 : 8; })
+      .attr("dy", 3)
+      .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
+      .text(function(d) { if (!d.children){
+             return d.name + " - " + addCommas(d.Count);
+        }else{ return d.name; } });
+
+    var nodeUpdate = node.transition()
+        .duration(500)
+        .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+    nodeUpdate.select("circle")
+        .attr("r", 5);
+
+    nodeUpdate.select("text")
+      .attr("dx", function(d) { return d.children ? -8 : 8; })
+      .attr("dy", 3)
+      .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
+      .text(function(d) { if (!d.children){
+             return d.name + " - " + addCommas(d.Count);
+        }else{ return d.name; } });
+
+    var nodeExit = node.exit().transition()
+        .duration(500)
+        .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
+        .remove();
+
+    nodeExit.select("circle")
+        .attr("r", 5)
+        .remove();
+
+    nodeExit.select("text")
+        .remove();
+
+
+    var link = svg.selectAll("path.link")
+        .data(links);
+
+    link.enter()
+        .insert("path", "g")
+        .attr("class", "link")
+        .attr("d", diagonal);
+
+    link.transition()
+        .duration(500)
+        .attr("d", diagonal);
+
+    link.exit().transition()
+        .duration(500)
+        .attr("d", diagonal)
+        .remove();
+
+
+});
 }
 
 var margin = {top: 20, right: 120, bottom: 20, left: 120},
     width = 960 - margin.right - margin.left,
-    height = 5000 - margin.top - margin.bottom;
+    height = 6000 - margin.top - margin.bottom;
+
+ var tree = d3.layout.tree()
+    .size([height, width - 250]);
+
+var diagonal = d3.svg.diagonal()
+    .projection(function(d) { return [d.y, d.x]; });
 
 var svg = d3.select("body").append("svg")
     .attr("width", width + margin.right + margin.left)
@@ -46,50 +170,9 @@ var svg = d3.select("body").append("svg")
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var tree = d3.layout.tree()
-    .size([height, width - 250]);
-
-var diagonal = d3.svg.diagonal()
-    .projection(function(d) { return [d.y, d.x]; });
-
-
-d3.json("https://raw.githubusercontent.com/keenangraham/keenangraham.github.io/master/code/combination_tree/data.json", function(error, data) {
-    if (error) throw error;
-    var nodes = tree.nodes(data);
-    var links = tree.links(nodes);
-    var link = svg.selectAll(".link")
-        .data(links)
-        .enter()
-        .append("path")
-        .attr("class", "link")
-        .attr("d", diagonal);
-
-    var node = svg.selectAll(".node")
-        .data(nodes)
-        .enter()
-        .append("g")
-        .attr("class", "node")
-        .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; })
-
-    node.append("text")
-      .attr("dx", function(d) { return d.children ? -8 : 8; })
-      .attr("dy", 3)
-      .attr("text-anchor", function(d) { return d.children ? "end" : "start"; })
-      .text(function(d) { if (!d.children){
-      		 return d.name + " - " + addCommas(d.Count);
-      	}else{ return d.name; } });
-
-    node.append("circle")
-        .attr("r", 5); 
-
-
-  
-
-
-
-
-
-});
-
+update(1);
 
 </script>
+
+
+</body>
