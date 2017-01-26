@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+        <link href='https://fonts.googleapis.com/css?family=Roboto:900' rel='stylesheet' type='text/css'>
+
+        <title></title>
+        <style>
+
+            body{
+                font-family: 'Myriad Pro', sans-serif;
+            }
+
+            #graphic {
+              padding-top: 60px;
+            }
+
+            #sections {
+              pointer-events: none;
+              position: relative;
+              display: inline-block;
+              top: 0px;
+              z-index: 5;
+              padding-bottom: 20px;
+              text-align: justify;
+              font-family: 'Open Sans', sans-serif;
+            }
+
+            h2{
+                font-family: 'Roboto', sans-serif;
+                text-align: center;
+                margin: 30px;
+                margin-top: 120px;
+            }
+
+            p{
+                margin-bottom: 30px;
+            }
+
+            .btn.btn-default.btn-lg, .btn.btn-default.btn-lg:active {
+                font-family: 'Myriad Pro';
+                font-size: 14px;
+                font-weight: bold;
+                color: gray;
+                outline: 0;
+                background-color: white;
+
+            }
+
+            #axis line {stroke: white; opacity: 1;}
+
+            #axis text {font-family: 'Roboto'; opacity: 0.5;}
+
+            #axis path {fill: none; stroke: gray; opacity: 0.5;}
+
+            .chartText {
+                font-family: 'Roboto';
+                font-size: 12px;
+            }
+
+            .lineChart {
+                fill: none;
+                stroke: red;
+                stroke-width: 2.5;
+                stroke-opacity: 0.5;
+
+            }
+
+            .grid-background {
+              fill: #ddd;
+            }
+
+            #grid line {
+              stroke: #fff;
+              stroke-width: 1.5;
+            }
+
+            #grid .minor line {
+              stroke-opacity: .4;
+              stroke: #fff;
+            }
+
+            #grid text {
+              display: none;
+            }
+
+            #axis line {
+              stroke: gray;
+              stroke-opacity: 1;
+            }
+
+            .minorTick {
+                display: none;
+            }
+
+            #axis path,
+            #grid path {
+              display: none;
+            }
+
+        </style>
+    </head>
+    <body>
+    <!--
+    <div class="row col-sm-10 col-sm-offset-1 container">
+       <div class="col-sm-10 col-sm-offset-1">
+            <h2>Title</h2>
+           <p style="text-align:center">By <span style="font-style:italic">Someone</span></p>
+       </div>
+    </div>
+    <div id="graphic">
+        <div id="sections">
+            <section class="step col-sm-6 col-sm-offset-3">
+                <p>Words.</p>
+            </section>
+            
+        </div>
+    </div>
+    --><div id="graphic">
+        <div style="width:700px; margin:0 auto;"> 
+            <button type="button" class="btn btn-default btn-lg" style="float: right;" id="updatePlot">
+                Update
+            </button>
+        </div>
+        <div id="linePlot" style="width:700px; margin:0 auto;">
+        </div>
+        <div id="scatterPlot" style="width:700px; margin:0 auto;">
+        </div>
+       </div>
+     </body>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script>
+
+    function generateData(){
+        return {"x": Math.random() * 700, "y": Math.random() * 700};
+    }
+
+    function updateData(){
+        return d3.range(Math.round(Math.random() * 50)).map(generateData);
+    }
+
+    function initPlot(plotType, width, height, margin){
+
+        var svg = d3.select("#" + plotType)
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+        return svg;
+
+    }
+
+    function makeLinePlot(svg, data, x, y, colorScale, opacityScale){
+
+        x.domain(d3.range(data.length));
+        y.domain([0, d3.max(data, function(d){return d.y;})]);
+
+        var line = d3.line()
+                        .x(function(d, i){return x(i);})
+                        .y(function(d){return y(d.y);})
+                        .curve(d3.curveBasis);
+
+        svg.selectAll("ticks")
+            .classed("minor", false);
+
+        svg.selectAll(".minorTick")
+            .classed("minorTick", false);
+
+        svg.transition()
+            .select(".lineXAxis")
+            .call(d3.axisBottom(x));
+
+        svg.transition()
+            .select(".lineYAxis")
+            .call(d3.axisLeft(y));
+
+        var xTickNum = svg.select(".lineXAxis").selectAll(".tick").size();
+
+        svg.select(".xGrid").selectAll(".tick").remove();
+
+        svg.transition()
+            .select(".xGrid")
+            .call(d3.axisBottom(x).ticks(xTickNum).tickSizeInner(-lineHeight));
+
+        svg.select(".xGrid")
+            .selectAll(".tick")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minor", true);  
+
+        svg.select(".lineXAxis")
+            .selectAll("text")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minorTick", true);
+
+        svg.select(".lineXAxis")
+            .selectAll("line")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minorTick", true);
+
+        var yTickNum = svg.select(".lineYAxis").selectAll(".tick").size();
+
+        svg.select(".yGrid").selectAll(".tick").remove();
+
+        svg.transition()
+            .select(".yGrid")
+            .call(d3.axisLeft(y).ticks(yTickNum).tickSizeInner(-lineWidth));
+
+        svg.select(".yGrid")
+            .selectAll(".tick")
+            .sort()
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minor", true);
+
+        svg.select(".lineYAxis")
+            .selectAll("text")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minorTick", true);
+
+        svg.select(".lineYAxis")
+            .selectAll("line")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minorTick", true);
+
+        svg.select(".lineChart")
+            .transition()
+            .attr("d", line(data));
+
+    }
+
+    function makeScatterPlot(svg, data, x, y, colorScale, opacityScale){
+
+        var dataExtentX = d3.extent(data, function(d){return d.x;});
+        var dataRangeX = dataExtentX[1] - dataExtentX[0];
+
+        x.domain([0, (d3.max(data, function(d){return d.x;}) + Math.round(0.10 * dataRangeX))]);
+        y.domain([0, d3.max(data, function(d){return d.y;})]);
+
+        colorScale.domain([0, d3.max(data, function(d){return d.x;})]);
+        opacityScale.domain([0, d3.max(data, function(d){return d.y;})]);
+
+        var circles = svg.selectAll("circle")
+                            .data(data);
+
+        circles.transition()
+                .attr("cx", function(d){return x(d.x);})
+                .attr("cy", function(d){return y(d.y);})
+                .attr("r", 3)
+                .attr("fill", "none")
+                .attr("stroke", function(d){return colorScale(d.x);})
+                .attr("stroke-width", 1.5)
+                .attr("stroke-opacity", function(d){return opacityScale(d.y);});
+
+        circles.enter()
+                .append("circle")
+                .transition()
+                .attr("cx", function(d){return x(d.x);})
+                .attr("cy", function(d){return y(d.y);})
+                .attr("r", 3)
+                .attr("fill", "none")
+                .attr("stroke", function(d){return colorScale(d.x);})
+                .attr("stroke-width", 1.5)
+                .attr("stroke-opacity", function(d){return opacityScale(d.y);});
+                
+        circles.exit().transition().remove();
+
+        var texts = svg.selectAll(".chartText")
+                        .data(data);
+        
+        texts.text("hello")
+                .attr("class", "chartText")
+                .transition()
+                .attr("x",function(d){return (x(d.x) + 5);})
+                .attr("y", function(d){return y(d.y);})
+                .attr("fill", function(d){return colorScale(d.x);})
+                .attr("opacity", function(d){return opacityScale(d.y);});
+
+        texts.enter()
+            .append("text")
+            .attr("class", "chartText")
+            .text("hello")
+            .transition()
+            .attr("x", function(d){return (x(d.x) + 5);})
+            .attr("y", function(d){return y(d.y);})
+            .attr("fill", function(d){return colorScale(d.x);})
+            .attr("opacity", function(d){return opacityScale(d.y);});
+
+        texts.exit().transition().remove();
+
+        svg.transition()
+            .select(".scatterXAxis")
+            .call(d3.axisBottom(x));
+
+        svg.transition()
+            .select(".scatterYAxis")
+            .call(d3.axisLeft(y));
+
+        svg.selectAll("ticks")
+            .classed("minor", false);
+
+        var xTickNum = svg.select(".scatterXAxis").selectAll(".tick").size();
+
+        svg.select(".xGrid").selectAll(".tick").remove();
+
+        svg.transition()
+            .select(".xGrid")
+            .call(d3.axisBottom(x).ticks(xTickNum).tickSizeInner(-scatterHeight));
+
+        svg.select(".xGrid")
+            .selectAll(".tick")
+            .data(x.ticks(Math.floor(xTickNum / 2)), function(d){return d;})
+            .exit()
+            .classed("minor", true);
+
+        svg.transition()
+            .select(".scatterXAxis")
+            .call(d3.axisBottom(x).ticks(Math.floor(xTickNum / 2)));
+
+        var yTickNum = svg.select(".scatterYAxis").selectAll(".tick").size();
+
+        svg.select(".yGrid").selectAll(".tick").remove();
+
+        svg.transition()
+            .select(".yGrid")
+            .call(d3.axisLeft(y).ticks(yTickNum).tickSizeInner(-scatterWidth));
+
+        svg.select(".yGrid")
+            .selectAll(".tick")
+            .data(y.ticks(Math.floor(yTickNum / 2)), function(d){return d;})
+            .exit()
+            .classed("minor", true);
+
+        svg.transition()
+            .select(".scatterYAxis")
+            .call(d3.axisLeft(y).ticks(Math.floor(yTickNum / 2)));
+
+
+    }
+
+////////////////// Data //////////////////
+
+    var data = updateData();
+
+////////////////// Line plot //////////////////
+    
+    var lineMargin = {"top": 15, "bottom": 15, "left": 15, "right": 30};
+    var lineWidth = 700 - lineMargin.left - lineMargin.right;
+    var lineHeight = 350 - lineMargin.top - lineMargin.bottom;
+
+    var lineSvg = initPlot("linePlot", lineWidth, lineHeight, lineMargin);
+
+    var lineX = d3.scalePoint()
+                    .rangeRound([lineMargin.left, lineWidth - lineMargin.right])
+                    .padding(0.1);
+
+    var lineY = d3.scaleLinear()
+                    .range([lineHeight - lineMargin.bottom, 0 + lineMargin.top]);
+
+    var lineColorScale = d3.scaleLinear()
+                        .range(["grey", "red"]);
+
+    var lineOpacityScale = d3.scaleLinear()
+                            .range([0.5, 0.9]);
+
+    lineSvg.append("rect")
+        .attr("class", "grid-background")
+        .attr("width", lineWidth - lineMargin.right - lineMargin.left)
+        .attr("height", lineHeight - lineMargin.bottom)
+        .attr("transform", "translate(" + lineMargin.left + ", 0)");  
+
+    lineSvg.append("g")
+        .attr("class", "lineXAxis")
+        .attr("id", "axis")
+        .attr("transform", "translate(0, " + (lineHeight - lineMargin.bottom) + ")");
+
+    lineSvg.append("g")
+        .attr("class", "lineYAxis")
+        .attr("id", "axis")
+        .attr("transform", "translate(" + lineMargin.left + ", 0)");
+
+    lineSvg.append("g")
+        .attr("class", "xGrid")
+        .attr("id", "grid")
+        .attr("transform", "translate(0, " + (lineHeight - lineMargin.bottom) + ")");
+
+    lineSvg.append("g")
+        .attr("class", "yGrid")
+        .attr("id", "grid")
+        .attr("transform", "translate(" + lineMargin.left + ", 0)");
+
+    lineSvg.append("path")
+            .attr("class", "lineGroup")
+            .data([data])
+            .attr("class", "lineChart");
+
+    makeLinePlot(lineSvg, data, lineX, lineY, lineColorScale, lineOpacityScale);
+    
+
+////////////////// Scatter plot //////////////////
+
+    var scatterMargin = {"top": 15, "bottom": 15, "left": 15, "right": 30};
+    var scatterWidth = 700 - scatterMargin.left - scatterMargin.right;
+    var scatterHeight = 350 - scatterMargin.top - scatterMargin.bottom;
+
+    var scatterSvg = initPlot("scatterPlot", scatterWidth, scatterHeight, scatterMargin);
+
+    var scatterX = d3.scaleLinear()
+                    .range([0 + scatterMargin.left, scatterWidth - scatterMargin.right]);
+
+    var scatterY = d3.scaleLinear()
+                    .range([scatterHeight - scatterMargin.bottom, 0 + scatterMargin.top]);
+
+    var scatterColorScale = d3.scaleLinear()
+                        .range(["black", "red"]);
+
+    var scatterOpacityScale = d3.scaleLinear()
+                            .range([0.5, 0.9]);
+
+    scatterSvg.append("rect")
+        .attr("class", "grid-background")
+        .attr("width", scatterWidth - scatterMargin.right - scatterMargin.left)
+        .attr("height", scatterHeight - scatterMargin.bottom)
+        .attr("transform", "translate(" + scatterMargin.left + ", 0)");
+
+    scatterSvg.append("g")
+        .attr("class", "scatterXAxis")
+        .attr("id", "axis")
+        .attr("transform", "translate(0, " + (scatterHeight - scatterMargin.bottom) + ")");
+
+    scatterSvg.append("g")
+        .attr("class", "scatterYAxis")
+        .attr("id", "axis")
+        .attr("transform", "translate(" + scatterMargin.left + ", 0)");
+
+    scatterSvg.append("g")
+        .attr("class", "xGrid")
+        .attr("id", "grid")
+        .attr("transform", "translate(0, " + (scatterHeight - scatterMargin.bottom) + ")");
+
+    scatterSvg.append("g")
+        .attr("class", "yGrid")
+        .attr("id", "grid")
+        .attr("transform", "translate(" + scatterMargin.left + ", 0)");
+
+    makeScatterPlot(scatterSvg, data, scatterX, scatterY, scatterColorScale, scatterOpacityScale);
+
+////////////////// Update Button //////////////////
+
+    var updatePlot = d3.select("#updatePlot")
+                        .on("click", function(){
+                                        var data = updateData();
+                                        var data2 = updateData();
+                                        makeLinePlot(
+                                            lineSvg,
+                                            data,
+                                            lineX,
+                                            lineY,
+                                            lineColorScale,
+                                            lineOpacityScale
+                                            );
+                                        makeScatterPlot(
+                                            scatterSvg,
+                                            data,
+                                            scatterX,
+                                            scatterY,
+                                            scatterColorScale,
+                                            scatterOpacityScale
+                                        );
+                                    });
+
+    </script>
+
+</html> 
