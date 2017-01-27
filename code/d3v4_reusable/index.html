@@ -1,145 +1,150 @@
 <!DOCTYPE html>
 <html>
-
     <head>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
         <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
         <link href='https://fonts.googleapis.com/css?family=Roboto:900' rel='stylesheet' type='text/css'>
-
         <title></title>
         <style>
-
-            body{
-                font-family: 'Myriad Pro', sans-serif;
+            body {
+            font-family: 'Myriad Pro', sans-serif;
             }
 
             #graphic {
-              padding-top: 60px;
+            padding-top: 60px;
             }
 
             #sections {
-              pointer-events: none;
-              position: relative;
-              display: inline-block;
-              top: 0px;
-              z-index: 5;
-              padding-bottom: 20px;
-              text-align: justify;
-              font-family: 'Open Sans', sans-serif;
+            pointer-events: none;
+            position: relative;
+            display: inline-block;
+            top: 0px;
+            z-index: 5;
+            padding-bottom: 20px;
+            text-align: justify;
+            font-family: 'Open Sans', sans-serif;
             }
 
-            h2{
-                font-family: 'Roboto', sans-serif;
-                text-align: center;
-                margin: 30px;
-                margin-top: 120px;
+            h2 {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            margin: 30px;
+            margin-top: 120px;
             }
 
-            p{
-                margin-bottom: 30px;
+            p {
+            margin-bottom: 30px;
             }
 
             .btn.btn-default.btn-lg, .btn.btn-default.btn-lg:active {
-                font-family: 'Myriad Pro';
-                font-size: 14px;
-                font-weight: bold;
-                color: gray;
-                outline: 0;
-                background-color: white;
-
-            }
-
-            #axis line {stroke: white; opacity: 1;}
-
-            #axis text {font-family: 'Roboto'; opacity: 0.5;}
-
-            #axis path {fill: none; stroke: gray; opacity: 0.5;}
-
-            .chartText {
-                font-family: 'Roboto';
-                font-size: 12px;
-            }
-
-            .lineChart {
-                fill: none;
-                stroke: red;
-                stroke-width: 2.5;
-                stroke-opacity: 0.5;
-
-            }
-
-            .grid-background {
-              fill: #ddd;
-            }
-
-            #grid line {
-              stroke: #fff;
-              stroke-width: 1.5;
-            }
-
-            #grid .minor line {
-              stroke-opacity: .4;
-              stroke: #fff;
-            }
-
-            #grid text {
-              display: none;
+            font-family: 'Myriad Pro';
+            font-size: 14px;
+            font-weight: bold;
+            color: gray;
+            outline: 0;
+            background-color: white;
             }
 
             #axis line {
-              stroke: gray;
-              stroke-opacity: 1;
+                stroke: white;
+                opacity: 1;
+            }
+
+            #axis text {
+                font-family: 'Roboto';
+                opacity: 0.5;
+            }
+
+            #axis path {
+                fill: none;
+                stroke: gray;
+                opacity: 0.5;
+            }
+
+            .chartText {
+            font-family: 'Roboto';
+            font-size: 12px;
+            }
+
+            .lineChart {
+            fill: none;
+            stroke: red;
+            stroke-width: 2.5;
+            stroke-opacity: 0.5;
+            }
+
+            .grid-background {
+            fill: #ddd;
+            }
+
+            #grid line {
+            stroke: #fff;
+            stroke-width: 1.5;
+            }
+
+            #grid .minor line {
+            stroke-opacity: .4;
+            stroke: #fff;
+            }
+
+            #grid text {
+            display: none;
+            }
+
+            #axis line {
+            stroke: gray;
+            stroke-opacity: 1;
             }
 
             .minorTick {
-                display: none;
+            display: none;
             }
 
             #axis path,
             #grid path {
-              display: none;
+            display: none;
             }
-
         </style>
     </head>
     <body>
     <!--
-    <div class="row col-sm-10 col-sm-offset-1 container">
-       <div class="col-sm-10 col-sm-offset-1">
-            <h2>Title</h2>
-           <p style="text-align:center">By <span style="font-style:italic">Someone</span></p>
-       </div>
-    </div>
-    <div id="graphic">
-        <div id="sections">
-            <section class="step col-sm-6 col-sm-offset-3">
-                <p>Words.</p>
-            </section>
-            
+        <div class="row col-sm-10 col-sm-offset-1 container">
+            <div class="col-sm-10 col-sm-offset-1">
+                <h2>Title</h2>
+                <p style="text-align:center">By <span style="font-style:italic">Someone</span></p>
+            </div>
         </div>
-    </div>
-    --><div id="graphic">
-        <div style="width:700px; margin:0 auto;"> 
-            <button type="button" class="btn btn-default btn-lg" style="float: right;" id="updatePlot">
-                Update
-            </button>
+        <div id="graphic">
+            <div id="sections">
+                <section class="step col-sm-6 col-sm-offset-3">
+                    <p>Words.</p>
+                </section>
+            </div>
         </div>
-        <div id="linePlot" style="width:700px; margin:0 auto;">
+    -->
+        <div id="graphic">
+            <div style="width:700px; margin:0 auto;"> 
+                <button type="button" class="btn btn-default btn-lg" style="float: right;" id="updatePlot">
+                    Update
+                </button>
+            </div>
+            <div id="linePlot" style="width:700px; margin:0 auto;"></div>
+            <div id="scatterPlot" style="width:700px; margin:0 auto;"></div>
         </div>
-        <div id="scatterPlot" style="width:700px; margin:0 auto;">
-        </div>
-       </div>
-     </body>
-
+    </body>
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script>
 
     function generateData(){
+
         return {"x": Math.random() * 700, "y": Math.random() * 700};
+
     }
 
     function updateData(){
+
         return d3.range(Math.round(Math.random() * 50)).map(generateData);
+
     }
 
     function initPlot(plotType, width, height, margin){
@@ -151,6 +156,47 @@
                     .append("g")
                     .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
         return svg;
+
+    }
+
+    function makeGridLines(opt){
+
+        var svg = opt.svg;
+        var chartAxis = opt.chartAxis;
+        var grid = opt.grid;
+        var axis = opt.axis;
+        var chartSize = opt.chartSize;
+        var horizontal = opt.horizontal;
+
+        if (horizontal){
+            var axisSelection = d3.axisLeft(axis);
+        } else {
+            var axisSelection = d3.axisBottom(axis);
+        }
+
+        var tickNum = svg.select(chartAxis).selectAll(".tick").size();
+
+        svg.select(grid).selectAll(".tick").remove();
+
+        svg.transition()
+            .select(grid)
+            .call(axisSelection.ticks(tickNum).tickSizeInner(-chartSize));
+
+        svg.select(grid)
+            .selectAll(".tick")
+            .sort()
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minor", true);
+
+        svg.select(chartAxis)
+            .selectAll("text")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minorTick", true);
+
+        svg.select(chartAxis)
+            .selectAll("line")
+            .filter(function(d, i) {return (i % 2 !== 0);})
+            .classed("minorTick", true);
 
     }
 
@@ -178,52 +224,23 @@
             .select(".lineYAxis")
             .call(d3.axisLeft(y));
 
-        var xTickNum = svg.select(".lineXAxis").selectAll(".tick").size();
+        makeGridLines({
+            "svg": svg,
+            "chartAxis": ".lineXAxis",
+            "grid": ".xGrid",
+            "axis": x,
+            "chartSize": lineHeight,
+            "horizontal": false
+        });
 
-        svg.select(".xGrid").selectAll(".tick").remove();
-
-        svg.transition()
-            .select(".xGrid")
-            .call(d3.axisBottom(x).ticks(xTickNum).tickSizeInner(-lineHeight));
-
-        svg.select(".xGrid")
-            .selectAll(".tick")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minor", true);  
-
-        svg.select(".lineXAxis")
-            .selectAll("text")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minorTick", true);
-
-        svg.select(".lineXAxis")
-            .selectAll("line")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minorTick", true);
-
-        var yTickNum = svg.select(".lineYAxis").selectAll(".tick").size();
-
-        svg.select(".yGrid").selectAll(".tick").remove();
-
-        svg.transition()
-            .select(".yGrid")
-            .call(d3.axisLeft(y).ticks(yTickNum).tickSizeInner(-lineWidth));
-
-        svg.select(".yGrid")
-            .selectAll(".tick")
-            .sort()
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minor", true);
-
-        svg.select(".lineYAxis")
-            .selectAll("text")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minorTick", true);
-
-        svg.select(".lineYAxis")
-            .selectAll("line")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minorTick", true);
+        makeGridLines({
+            "svg": svg,
+            "chartAxis": ".lineYAxis",
+            "grid": ".yGrid",
+            "axis": y,
+            "chartSize": lineWidth,
+            "horizontal": true
+        });
 
         svg.select(".lineChart")
             .transition()
@@ -319,24 +336,14 @@
             .select(".scatterXAxis")
             .call(d3.axisBottom(x).ticks(Math.floor(xTickNum / 2)));
 
-        var yTickNum = svg.select(".scatterYAxis").selectAll(".tick").size();
-
-        svg.select(".yGrid").selectAll(".tick").remove();
-
-        svg.transition()
-            .select(".yGrid")
-            .call(d3.axisLeft(y).ticks(yTickNum).tickSizeInner(-scatterWidth));
-
-        svg.select(".yGrid")
-            .selectAll(".tick")
-            .data(y.ticks(Math.floor(yTickNum / 2)), function(d){return d;})
-            .exit()
-            .classed("minor", true);
-
-        svg.transition()
-            .select(".scatterYAxis")
-            .call(d3.axisLeft(y).ticks(Math.floor(yTickNum / 2)));
-
+        makeGridLines({
+            "svg": svg,
+            "chartAxis": ".scatterYAxis",
+            "grid": ".yGrid",
+            "axis": y,
+            "chartSize": scatterWidth,
+            "horizontal": true
+        });
 
     }
 
@@ -452,7 +459,6 @@
     var updatePlot = d3.select("#updatePlot")
                         .on("click", function(){
                                         var data = updateData();
-                                        var data2 = updateData();
                                         makeLinePlot(
                                             lineSvg,
                                             data,
@@ -472,5 +478,4 @@
                                     });
 
     </script>
-
 </html> 
