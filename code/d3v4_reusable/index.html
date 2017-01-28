@@ -70,7 +70,7 @@
             fill: none;
             stroke: red;
             stroke-width: 2.5;
-            stroke-opacity: 0.5;
+            stroke-opacity: 0.8;
             }
 
             .grid-background {
@@ -104,6 +104,14 @@
             #grid path {
             display: none;
             }
+
+            .barChart {
+                
+            }
+
+            .noShow {
+                display: none;
+            }
         </style>
     </head>
     <body>
@@ -128,8 +136,10 @@
                     Update
                 </button>
             </div>
+            <div id="barPlot" style="width:700px; margin:0 auto;"></div>
             <div id="linePlot" style="width:700px; margin:0 auto;"></div>
             <div id="scatterPlot" style="width:700px; margin:0 auto;"></div>
+            </div>
         </div>
     </body>
     <script src="https://d3js.org/d3.v4.min.js"></script>
@@ -167,6 +177,8 @@
         var axis = opt.axis;
         var chartSize = opt.chartSize;
         var horizontal = opt.horizontal;
+        var removeLabels = (typeof opt.removeLabels === "undefined") ? true : opt.removeLabels;
+        var thin = (typeof opt.thin === "undefined") ? false : opt.thin;
 
         if (horizontal){
             var axisSelection = d3.axisLeft(axis);
@@ -182,21 +194,137 @@
             .select(grid)
             .call(axisSelection.ticks(tickNum).tickSizeInner(-chartSize));
 
-        svg.select(grid)
-            .selectAll(".tick")
-            .sort()
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minor", true);
+        if (removeLabels){
 
-        svg.select(chartAxis)
-            .selectAll("text")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minorTick", true);
+            svg.select(grid)
+                .selectAll(".tick")
+                .sort()
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("minor", true);
 
-        svg.select(chartAxis)
-            .selectAll("line")
-            .filter(function(d, i) {return (i % 2 !== 0);})
-            .classed("minorTick", true);
+            svg.select(chartAxis)
+                .selectAll("text")
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("minorTick", true);
+
+            svg.select(chartAxis)
+                .selectAll("line")
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("minorTick", true);
+
+        }
+
+        if (thin){
+
+            svg.select(grid)
+                .selectAll(".tick")
+                .classed("noShow", false)
+                .sort()
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("noShow", true);
+
+            svg.select(chartAxis)
+                .selectAll("text")
+                .classed("noShow", false)
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("noShow", true);
+
+            svg.select(chartAxis)
+                .selectAll("line")
+                .classed("noShow", false)
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("noShow", true);
+
+            svg.select(grid)
+                .selectAll(".tick")
+                .sort()
+                .filter(function(d, i) {return d3.select(this).attr("class") !== "tick noShow";})
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("minor", true);
+
+            svg.select(chartAxis)
+                .selectAll("text")
+                .filter(function(d, i) {return d3.select(this).attr("class") !== "noShow";})
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("noShow", true);
+
+            svg.select(chartAxis)
+                .selectAll("line")
+                .filter(function(d, i) {return d3.select(this).attr("class") !== "noShow";})
+                .filter(function(d, i) {return (i % 2 !== 0);})
+                .classed("noShow", true);
+
+        }
+
+    }
+
+    function makeBarPlot(svg, data, x, y, colorScale, opacityScale){
+
+        var dataExtentY = d3.extent(data, function(d){return d.y;});
+        var dataRangeY = dataExtentY[1] - dataExtentY[0];
+
+        x.domain(d3.range(data.length));
+        y.domain([0, d3.max(data, function(d){return d.y;})]);
+
+        colorScale.domain([0, d3.max(data, function(d){return d.y;})]);
+
+        var bars = svg.select(".chart")
+                        .selectAll("rect")
+                        .data(data);
+
+        bars.transition()
+            .attr("height", function(d){return (barHeight - barMargin.bottom - y(d.y) - barOffset);})
+            .attr("width", x.bandwidth())
+            .attr("x", function(d, i){return x(i);})
+            .attr("y", function(d){return y(d.y);})
+            .attr("fill", function(d){return colorScale(d.y);});
+
+        bars.enter()
+            .append("rect")
+            .transition()
+            .attr("height", function(d){return (barHeight - barMargin.bottom - y(d.y) - barOffset);})
+            .attr("width", x.bandwidth())
+            .attr("x", function(d, i){return x(i);})
+            .attr("y", function(d){return y(d.y);})
+            .attr("class", "barChart")
+            .attr("fill", function(d){return colorScale(d.y);});
+
+        bars.exit().transition().remove();
+
+        svg.selectAll("ticks")
+            .classed("minor", false);
+
+        svg.selectAll(".minorTick")
+            .classed("minorTick", false);
+
+        svg.transition()
+            .select(".barXAxis")
+            .call(d3.axisBottom(x));
+
+        svg.transition()
+            .select(".barYAxis")
+            .call(d3.axisLeft(y));
+
+        makeGridLines({
+            "svg": svg,
+            "chartAxis": ".barXAxis",
+            "grid": ".xGrid",
+            "axis": x,
+            "chartSize": barHeight,
+            "horizontal": false,
+            "removeLabels": false
+        });
+
+        makeGridLines({
+            "svg": svg,
+            "chartAxis": ".barYAxis",
+            "grid": ".yGrid",
+            "axis": y,
+            "chartSize": barWidth,
+            "horizontal": true,
+            "removeLabels": false,
+            "thin": true
+        });
 
     }
 
@@ -351,6 +479,59 @@
 
     var data = updateData();
 
+////////////////// Bar plot //////////////////
+
+    var barMargin = {"top": 15, "bottom": 15, "left": 15, "right": 30};
+    var barWidth = 700 - barMargin.left - barMargin.right;
+    var barHeight = 200 - barMargin.top - barMargin.bottom;
+    var barOffset = 10;
+
+    var barSvg = initPlot("barPlot", barWidth, barHeight, barMargin);
+
+    var barX = d3.scaleBand()
+                    .rangeRound([barMargin.left, barWidth - barMargin.right])
+                    .padding(0.2);
+
+    var barY = d3.scaleLinear()
+                    .range([barHeight - barMargin.top - barOffset, barMargin.bottom])
+
+    var barColorScale = d3.scaleLinear()
+                        .range(["black", "red"]);
+
+    var barOpacityScale = d3.scaleLinear()
+                            .range([0.5, 0.9]);
+
+    barSvg.append("rect")
+        .attr("class", "grid-background")
+        .attr("width", barWidth - barMargin.right - barMargin.left)
+        .attr("height", barHeight - barMargin.bottom)
+        .attr("transform", "translate(" + barMargin.left + ",0)"); 
+
+    barSvg.append("g")
+        .attr("class", "barXAxis")
+        .attr("id", "axis")
+        .attr("transform", "translate(0, " + (barHeight - barMargin.bottom) + ")");
+
+    barSvg.append("g")
+        .attr("class", "barYAxis")
+        .attr("id", "axis")
+        .attr("transform", "translate(" + barMargin.left + ", 0)");
+
+    barSvg.append("g")
+        .attr("class", "xGrid")
+        .attr("id", "grid")
+        .attr("transform", "translate(0, " + (barHeight - barMargin.bottom) + ")");
+
+    barSvg.append("g")
+        .attr("class", "yGrid")
+        .attr("id", "grid")
+        .attr("transform", "translate(" + barMargin.left + ", 0)");
+
+    barSvg.append("g")
+            .attr("class", "chart");
+
+    makeBarPlot(barSvg, data, barX, barY, barColorScale, barOpacityScale);
+
 ////////////////// Line plot //////////////////
     
     var lineMargin = {"top": 15, "bottom": 15, "left": 15, "right": 30};
@@ -364,7 +545,7 @@
                     .padding(0.1);
 
     var lineY = d3.scaleLinear()
-                    .range([lineHeight - lineMargin.bottom, 0 + lineMargin.top]);
+                    .range([lineHeight - lineMargin.top, 0 + lineMargin.bottom]);
 
     var lineColorScale = d3.scaleLinear()
                         .range(["grey", "red"]);
@@ -459,6 +640,14 @@
     var updatePlot = d3.select("#updatePlot")
                         .on("click", function(){
                                         var data = updateData();
+                                        makeBarPlot(
+                                            barSvg,
+                                            data,
+                                            barX,
+                                            barY,
+                                            barColorScale,
+                                            barOpacityScale
+                                            );
                                         makeLinePlot(
                                             lineSvg,
                                             data,
